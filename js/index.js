@@ -1,8 +1,8 @@
 
 
-const user = "prolighthub";
-const email = "outlook.com";
-const kaid = "";
+const user = ""; //url username
+const email = ""; //your email's site
+const kaid = ""; //your kaid
 
 const type = "projects";//Top or projects
 
