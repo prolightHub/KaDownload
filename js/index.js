@@ -11,7 +11,7 @@ const sort = 2;
 
 const downloadName = "projects"; //Projects (your khan Academy project's page) or top (in browse projects)
 const proxyUrl = "https://cors-anywhere.herokuapp.com/";//You don't need to change this.
-const loadWithJsonInfo = false;
+const loadWithJsonInfo = true;
 
 function onReady()
 {
@@ -93,6 +93,7 @@ function downloadProjects()
 
         var loadedNames = {};
 
+        var count = 0;
         json.scratchpads.forEach(function(element, index, array)
         {
             ajax(proxyUrl + element.url, function(html)
@@ -107,7 +108,7 @@ function downloadProjects()
                     loadedNames[element.title] = 1;
                 }
 
-                console.log("Loading...", element.title);
+                console.log("Loading... (" + (++count) + "/" + array.length + ")", element.title);
 
                 var code = extractCodeJson(html);
                 addToZip(zip, code.scratchpad.title.split(' ').join('_') + (loadedNames[oldTitle] - 1 || ""), 
@@ -136,7 +137,6 @@ function downloadProjects()
         }, 1000 / 60);
     })
 }
-
 
 function ajax(url, func)
 {
