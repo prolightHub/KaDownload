@@ -9,8 +9,8 @@ const type = "projects";//Top or projects
 const limit = 1000;
 const sort = 2;
 
-const downloadName = "projects";
-const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+const downloadName = "projects"; //Projects (your khan Academy project's page) or top (in browse projects)
+const proxyUrl = "https://cors-anywhere.herokuapp.com/";//You don't need to change this.
 
 function onReady()
 {
