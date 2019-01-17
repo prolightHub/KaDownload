@@ -11,6 +11,7 @@ const sort = 2;
 
 const downloadName = "projects"; //Projects (your khan Academy project's page) or top (in browse projects)
 const proxyUrl = "https://cors-anywhere.herokuapp.com/";//You don't need to change this.
+const loadWithJsonInfo = false;
 
 function onReady()
 {
@@ -96,6 +97,8 @@ function downloadProjects()
         {
             ajax(proxyUrl + element.url, function(html)
             {
+                var oldTitle = element.title;
+
                 if(loadedNames[element.title])
                 {
                     loadedNames[element.title]++;
@@ -105,8 +108,12 @@ function downloadProjects()
                 }
 
                 console.log("Loading...", element.title);
+
                 var code = extractCodeJson(html);
-                addToZip(zip, code.scratchpad.title.split(' ').join('_'), alignCode(code.scratchpad.revision.code));
+                addToZip(zip, code.scratchpad.title.split(' ').join('_') + (loadedNames[oldTitle] - 1 || ""), 
+                    alignCode(code.scratchpad.revision.code), code.scratchpad.title,
+                    (loadWithJsonInfo) ? JSON.stringify(element) : undefined);
+
                 loaded++;
             });
         });
@@ -120,15 +127,16 @@ function downloadProjects()
                 zip.generateAsync({type : "blob"}).then(function(content) 
                 {
                     saveAs(content, downloadName + ".zip");
+                    
+                    console.log("Finished!");
                 });
-
-                console.log("Finished!");
 
                 window.clearInterval(loop);
             }
         }, 1000 / 60);
     })
 }
+
 
 function ajax(url, func)
 {
@@ -150,14 +158,14 @@ function loadCode(object, onFinish)
         {
             ajax(proxyUrl + object[i], content => 
             {
-		counted++;
+				counted++;
                 object[i] = content;
             });
         }
     }
 }
 
-function addToZip(zip, name, code)
+function addToZip(zip, name, code, nameNoSpaces, elementJson)
 {
     var img = zip.folder(name);
 
@@ -171,7 +179,12 @@ function addToZip(zip, name, code)
     var libraries = img.folder("libraries");
         libraries.file("processing.js", projectStructure.libraries["processing.js"]);
 
-    img.file("index.html", projectStructure["index.html"]);
+    img.file("index.html", projectStructure["index.html"].replace("Processing Js", nameNoSpaces || ""));
+
+    if(elementJson)
+    {
+        img.file("info.json", elementJson);
+    }
 }
 
 function alignCode(code)
