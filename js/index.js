@@ -1,5 +1,5 @@
 
-
+//Try to fill in as many as these as you can.
 const user = ""; //url username
 const email = ""; //your email's site
 const kaid = ""; //your kaid
