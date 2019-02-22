@@ -2,7 +2,7 @@
 //Try to fill in as many as these as you can.
 const user = ""; //url username
 const email = ""; //your email's site
-const kaid = ""; //your kaid
+const kaid = "kaid_1042009894132225686810694"; //your kaid
 
 const type = "projects";//Top or projects
 
@@ -88,7 +88,9 @@ function downloadProjects()
 
         projectList = json.scratchpads;
 
-        var zip = new JSZip();
+        var pZip = new JSZip();
+
+        var zip = pZip.folder(downloadName.toString() + "-master");
         var loaded = 0;
 
         var loadedNames = {};
@@ -96,22 +98,17 @@ function downloadProjects()
         var count = 0;
         json.scratchpads.forEach(function(element, index, array)
         {
+            /*Get rid of weird folder names just in case*/
+            //element.title = element.url;
+            //element.title = element.title.replace("https://www.khanacademy.org/computer-programming/", "");
+            //element.title = element.title.substring(-1, element.title.indexOf('/'));
+
             ajax(proxyUrl + element.url, function(html)
             {
-                var oldTitle = element.title;
-
-                if(loadedNames[element.title])
-                {
-                    loadedNames[element.title]++;
-                    element.title = element.title.toString() + (loadedNames[element.title] - 1);
-                }else{
-                    loadedNames[element.title] = 1;
-                }
-
                 console.log("Loading... (" + (++count) + "/" + array.length + ")", element.title);
 
                 var code = extractCodeJson(html);
-                addToZip(zip, code.scratchpad.title.split(' ').join('_') + (loadedNames[oldTitle] - 1 || ""), 
+                addToZip(zip, code.scratchpad.title.split(' ').join('_'), 
                     alignCode(code.scratchpad.revision.code), code.scratchpad.title,
                     (loadWithJsonInfo) ? JSON.stringify(element) : undefined);
 
@@ -125,7 +122,7 @@ function downloadProjects()
             {
                 console.log("Downloading...");
 
-                zip.generateAsync({type : "blob"}).then(function(content) 
+                pZip.generateAsync({type : "blob"}).then(function(content) 
                 {
                     saveAs(content, downloadName + ".zip");
                     
@@ -165,8 +162,16 @@ function loadCode(object, onFinish)
     }
 }
 
-function addToZip(zip, name, code, nameNoSpaces, elementJson)
+var nameCache = {};
+function addToZip(zip, name, code, nameSp, elementJson)
 {
+    if(typeof nameCache[name] !== "number")
+    {
+        nameCache[name] = 0;
+    }else{
+        name += " ("+ (++nameCache[name]) +")";
+    }
+
     var img = zip.folder(name);
 
     var css = img.folder("css");
@@ -179,7 +184,7 @@ function addToZip(zip, name, code, nameNoSpaces, elementJson)
     var libraries = img.folder("libraries");
         libraries.file("processing.js", projectStructure.libraries["processing.js"]);
 
-    img.file("index.html", projectStructure["index.html"].replace("Processing Js", nameNoSpaces || ""));
+    img.file("index.html", projectStructure["index.html"].replace("Processing Js", nameSp || ""));
 
     if(elementJson)
     {
@@ -196,4 +201,19 @@ function extractCodeJson(str)
 {
     return JSON.parse(str.substring(str.indexOf("children: ReactComponent(") + 25, 
                                     str.indexOf(", document.getElementById(\"tutorial-content\"))") - 8));
+}
+
+function nextString(name) 
+{ 
+    var out = name.match("([0-9]+)");
+
+    if(out && !isNaN(Number(out[0])))
+    {
+        console.log(true);
+        name = name.replace(" (" + out[0] + ")", " (" + (Number(out[0]) + 1).toString() + ")");
+    }else{
+        name += " (1)";
+    }
+
+    return name;
 }
